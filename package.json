@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "console-log-colors": "^0.3.3",
+    "figlet": "^1.5.2",
+    "gradient-string": "^2.0.2",
+    "move-terminal-cursor": "^0.0.4"
+  }
+}
