@@ -3,12 +3,12 @@ const process = require('process')
 const figlet = require('figlet')
 const gradient = require('gradient-string')
 
-const gui = require('../classes/gui')
+const Gui = require('../classes/gui')
 const { logRender, logTypes } = require('./guiFuncs/log')
 const { Button, exit, settings, bulkActions, listClients, toggleServer } = require('./guiFuncs/buttonFuncs')
 
-class menu extends gui {
-    menu = new Map([
+class Menu extends Gui {
+    btnList = new Map([
         [0, new Button('Toggle Server', toggleServer)],
         [1, new Button('List Clients', listClients)],
         [2, new Button('Bulk Actions', bulkActions)],
@@ -21,11 +21,10 @@ class menu extends gui {
     selrow = 0
     selcolumn = 0
     selectedButton = 0
-
     offset = 0
 
     async titleRender(width, height) {
-        if (height < 20 + Math.ceil(menu.length/5)*3) {
+        if (height < 20 + Math.ceil(btnList.length/5)*3) {
             return 0;
         }
 
@@ -60,29 +59,29 @@ class menu extends gui {
     }
 
     async menuRender(width, offset) { 
-        buttonHandler(width, offset);
+        this.buttonHandler(width, offset);
     }
 
     async render() {
         width = process.stdout.columns;
         height = process.stdout.rows;
         offset = await titleRender(width, height)
-        await menuRender(width, offset)
+        await this.menuRender(width, offset)
         await logRender(height)
     }
 
     async guiHandler() {
-        await hide(true);   
+        await this.hide(true);   
         let width = 0;
         let height = 0;
-        handlerLoop = setInterval(async () => {
+        this.handlerLoop = setInterval(async () => {
             // if console is resized
             //if the heigt is sm
             if (width !== process.stdout.columns || height !== process.stdout.rows) {
                 //if the terminal width < 100 or the terminal height < 30 then resize them individually
                 width = process.stdout.columns;
                 height = process.stdout.rows;
-                cls()
+                this.cls()
             }
         }, 0);
     }
@@ -110,10 +109,10 @@ class menu extends gui {
                     selcolumn--;
                     break;
                 case '\u000D':
-                    await menu.get(selectedButton).run(start)
+                    await this.btnList.get(this.selectedButton).run(this)
                     break;
             }
-            cls();
+            this.cls();
         });
     }
 
@@ -125,8 +124,7 @@ class menu extends gui {
         if (columns > 5) {
             columns = 5;
         }
-        let rows = Math.ceil(menu.size / columns);
-        console.log(rows, columns, menu.size)
+        let rows = Math.ceil(btnList.size / columns);
 
         const buttonX = Math.floor(width / columns / 2 - buttonWidth / 2);
         const buttonY = Math.floor(buttonHeight / 2) + height;
@@ -134,27 +132,27 @@ class menu extends gui {
 
         selectedButton = selrow * columns + selcolumn;
         //if selected button is higher than the amount of buttons then set it to the first button
-        if (selectedButton > menu.size - 1) {
+        if (selectedButton > btnList.size - 1) {
             selectedButton = 0;
             selrow = 0;
             selcolumn = 0;
         }
         //if selected button is lower than 0 then set it to the last button
         if (selectedButton < 0) {
-            selectedButton = menu.size - 1;
-            selrow = Math.floor(menu.size / columns);
-            selcolumn = menu.size % columns - 1;
+            selectedButton = btnList.size - 1;
+            selrow = Math.floor(btnList.size / columns);
+            selcolumn = btnList.size % columns - 1;
         }
 
         //loop through rows and columns and render the buttons
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < columns; j++) {
-                const button = menu.get(i * columns + j)?.getName()
+                const button = btnList.get(i * columns + j)?.getName()
                 if (button) {
                     const buttonXPos = buttonX + buttonSpacingX * j;
                     const buttonYPos = buttonY + buttonHeight * i;
                     const selected = selectedButton === i * columns + j;
-                    renderButton(button, buttonXPos, buttonYPos, buttonWidth, buttonHeight, selected);
+                    this.renderButton(button, buttonXPos, buttonYPos, buttonWidth, buttonHeight, selected);
                 }
             }
         }
@@ -178,3 +176,5 @@ class menu extends gui {
         process.stdout.write(text+ '\x1b[0m');
     }
 }
+
+module.exports = Menu

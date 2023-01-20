@@ -1,33 +1,47 @@
-class gui {
-    constructor() {
+class Gui {
+    constructor(parent) {
+        if (parent) {
+            this.parent = parent;
+            parent.kill();
+        }
         this.start();
     }
     
     cls() {
-        process.stdout.write('\033c');
+        // eslint-disable-next-line no-control-regex
+        process.stdout.write("\x1bc");
     }
 
     hide(shouldHide) {
         if (shouldHide) {
-            process.stdout.write('\033[?25l');
+            //use hex codes to hide the cursor instead of octal
+            process.stdout.write("\x1b[?25l");
         } else {
-            process.stdout.write('\033[?25h');
+            // eslint-disable-next-line no-control-regex
+            process.stdout.write("\x1b[?25h");
         }
     }
 
-    async guiHandler() {}
+    async guiHandler() {
+        this.handlerLoop = setInterval(async () => {
+        }, 0);
+    }
 
     async kill() {
-        clearInterval(handlerLoop);
-        //remove all listeners
+        if (this.handlerLoop) {
+            clearInterval(this.handlerLoop);
+        }
         process.stdin.removeAllListeners();
+        if (this.parent) {
+            await this.parent.start();
+        }
     }
 
     async start() {
-        await kill();
-        await setupStdin();
-        await guiHandler();
+        await this.kill();
+        await this.setupStdin();
+        await this.guiHandler();
     }
 }
 
-module.exports = gui;
+module.exports = Gui;

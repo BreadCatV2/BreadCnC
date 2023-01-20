@@ -1,4 +1,4 @@
-const {start} = require('../clientList');
+const {start, ClientList} = require('../clientList');
 
 class Button {
     constructor(name, func) {
@@ -27,8 +27,8 @@ async function bulkActions() {
     console.log('bulkActions');
 }
 
-async function listClients() {
-    await start();
+async function listClients(parent) {
+    return new ClientList(parent);
 }
 
 async function toggleServer() {
