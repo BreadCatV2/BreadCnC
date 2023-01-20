@@ -4,10 +4,20 @@ const figlet = require('figlet')
 const gradient = require('gradient-string')
 
 const { logRender } = require('./guiFuncs/log')
+const { Button, exit, settings, bulkActions, listClients, toggleServer } = require('./guiFuncs/buttonFuncs')
+
+const menu = new Map([
+    [0, new Button('Toggle Server', toggleServer)],
+    [1, new Button('List Clients', listClients)],
+    [2, new Button('Bulk Actions', bulkActions)],
+    [3, new Button('Settings', settings)],
+    [4, new Button('Exit', exit)]
+])
 
 //this will be the gui of the server
 let selrow = 0
 let selcolumn = 0
+let selectedButton = 0
 
 let offset = 0
 
@@ -34,43 +44,42 @@ async function hide(shouldHide) {
 }
 
 async function titleRender(width, height) {
+    if (height < 20 + Math.ceil(menu.length/5)*3) {
+        return 0;
+    }
+
+    const maxWidth = 100;
+    let widthOffset = 0;
+    if (width > maxWidth) {
+        widthOffset = maxWidth;
+    }
+    if (width < maxWidth) {
+        widthOffset = width - 10;
+    }
     const orangeRed = gradient('orange', 'red');
     const text = figlet.textSync('BreadCnC', {
         font: 'Standard',
         horizontalLayout: 'default',
-        verticalLayout: 'default'
+        verticalLayout: 'default',
+        width: widthOffset,
     })
     const title = orangeRed.multiline(text)
     const titleWidth = text.split('\n')[0].length;
-    const titleHeight = text.split('\n').length;
 
     const titleX = Math.floor(width / 2 - titleWidth / 2);
-    const titleY = Math.floor(height / 2 - titleHeight / 2) / 4;
+    const titleY = Math.floor(1);
     
     const titleLines = title.split('\n');
     for (let i = 0; i < titleLines.length; i++) {
         process.stdout.cursorTo(titleX, titleY + i);
         process.stdout.write(titleLines[i]);
     }
+    titleHeight = titleY + titleLines.length;
     return titleY + titleHeight;
 }
 
 async function menuRender(width, offset) { 
-    const menu = [
-        'list',
-        'help',
-        'settings',
-        'bulkAction',
-        'exit',
-        'test1',
-        'test2',
-        'test3',
-        'test4',
-        'test5',
-        'test6',
-        'test7',
-    ];
-    buttonHandler(menu, width, offset);
+    buttonHandler(width, offset);
 }
 
 async function render() {
@@ -84,14 +93,8 @@ async function render() {
 async function renderLoop() {
     let width = 0;
     let height = 0;
-
     setInterval(async () => {
-        if (process.stdout.columns < 70) {
-            process.stdout.write("\033[8;"+process.stdout.rows+";70t");
-        }
-        if (process.stdout.rows < 40) {
-            process.stdout.write("\033[8;40;"+process.stdout.columns+"t");
-        }
+        //if the heigt is sm
         if (width !== process.stdout.columns || height !== process.stdout.rows) {
             //if the terminal width < 100 or the terminal height < 30 then resize them individually
             width = process.stdout.columns;
@@ -127,11 +130,14 @@ stdin.on('data', (key) => {
         case '\u001B\u005B\u0044':
             selcolumn--;
             break;
+        case '\u000D':
+            menu.get(selectedButton).run()
+            break;
     }
     cls();
 }); 
 
-async function buttonHandler(buttons, width, height) {
+async function buttonHandler(width, height) {
     const buttonWidth = 15;
     const buttonHeight = 3;
     
@@ -139,30 +145,31 @@ async function buttonHandler(buttons, width, height) {
     if (columns > 5) {
         columns = 5;
     }
-    let rows = Math.ceil(buttons.length / columns);
-    
+    let rows = Math.ceil(menu.size / columns);
+    console.log(rows, columns, menu.size)
+
     const buttonX = Math.floor(width / columns / 2 - buttonWidth / 2);
     const buttonY = Math.floor(buttonHeight / 2) + height;
     const buttonSpacingX = Math.floor(width / columns);
 
-    let selectedButton = selrow * columns + selcolumn;
+    selectedButton = selrow * columns + selcolumn;
     //if selected button is higher than the amount of buttons then set it to the first button
-    if (selectedButton > buttons.length - 1) {
+    if (selectedButton > menu.size - 1) {
         selectedButton = 0;
         selrow = 0;
         selcolumn = 0;
     }
     //if selected button is lower than 0 then set it to the last button
     if (selectedButton < 0) {
-        selectedButton = buttons.length - 1;
-        selrow = Math.floor(buttons.length / columns);
-        selcolumn = buttons.length % columns - 1;
+        selectedButton = menu.size - 1;
+        selrow = Math.floor(menu.size / columns);
+        selcolumn = menu.size % columns - 1;
     }
 
     //loop through rows and columns and render the buttons
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < columns; j++) {
-            const button = buttons[i * columns + j];
+            const button = menu.get(i * columns + j).getName()
             if (button) {
                 const buttonXPos = buttonX + buttonSpacingX * j;
                 const buttonYPos = buttonY + buttonHeight * i;

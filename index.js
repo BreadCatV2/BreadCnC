@@ -1,5 +1,6 @@
 const net = require('net');
-const config = require('./config.json');
+var config = require('./config.json');
+
 const { guiHandler } = require('./libs/guis/menu');
 
 const socketHandler = require('./libs/socketHandler.js');
