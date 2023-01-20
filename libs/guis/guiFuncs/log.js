@@ -7,14 +7,9 @@ const logHeight = 10;
 //create the log file if it does not exist
 const logFile = fs.createWriteStream('log.txt', { flags: 'a' });
 
-module.exports = {
-    ogConsole,
-    logRender,
-}
-
 async function logRender(height) {
-    if (console.log !== newLog) {
-        console.log = newLog;
+    if (console.log !== verboseLog) {
+        console.log = verboseLog;
     }
     const logX = 0;
     const logY = height - logHeight;
@@ -26,7 +21,7 @@ async function logRender(height) {
     }
 }
 
-const newLog = function(...args) {
+const verboseLog = function(...args) {
     //get the text to log
     const text = args.join(' ');
     //add the text to the log
@@ -38,4 +33,23 @@ const newLog = function(...args) {
     logRender(process.stdout.rows);
     //write the log to the log file
     logFile.write(text+'\r\n');
+}
+
+const basicLog = function(...args) {
+    //get the text to log
+    const text = args.join(' ');
+    logFile.write(text+'\r\n');
+}
+
+const classicLog = ogConsole;
+
+class logTypes {
+    static verbose = verboseLog;
+    static basic = basicLog;
+    static classic = classicLog;
+}
+
+module.exports = {
+    logTypes,
+    logRender,
 }

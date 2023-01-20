@@ -1,14 +1,14 @@
 const net = require('net');
 var config = require('./config.json');
 
-const { guiHandler } = require('./libs/guis/menu');
+const { start } = require('./libs/guis/menu');
 
 const socketHandler = require('./libs/socketHandler.js');
 const { acceptConnection, socketList } = socketHandler;
 //accept socket connections
 const server = net.createServer();
 
-guiHandler()
+start()
 
 //handle socket connections
 server.on('connection', (socket) => {

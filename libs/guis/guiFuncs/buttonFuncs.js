@@ -1,4 +1,4 @@
-const {guiHandler} = require('../clientList');
+const {start} = require('../clientList');
 
 class Button {
     constructor(name, func) {
@@ -28,7 +28,7 @@ async function bulkActions() {
 }
 
 async function listClients() {
-    await guiHandler();
+    await start();
 }
 
 async function toggleServer() {
