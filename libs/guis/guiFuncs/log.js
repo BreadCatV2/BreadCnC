@@ -1,4 +1,5 @@
 const fs = require('fs');
+const ogConsole = console.log;
 
 const log = [];
 const logHeight = 10;
@@ -7,11 +8,14 @@ const logHeight = 10;
 const logFile = fs.createWriteStream('log.txt', { flags: 'a' });
 
 module.exports = {
+    ogConsole,
     logRender,
 }
 
 async function logRender(height) {
-
+    if (console.log !== newLog) {
+        console.log = newLog;
+    }
     const logX = 0;
     const logY = height - logHeight;
     
@@ -22,7 +26,7 @@ async function logRender(height) {
     }
 }
 
-console.log = function(...args) {
+const newLog = function(...args) {
     //get the text to log
     const text = args.join(' ');
     //add the text to the log

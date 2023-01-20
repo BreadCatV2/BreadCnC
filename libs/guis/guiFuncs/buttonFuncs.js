@@ -1,3 +1,5 @@
+const {guiHandler} = require('../clientList');
+
 class Button {
     constructor(name, func) {
         this.name = name;
@@ -7,8 +9,8 @@ class Button {
     getName() {
         return this.name;
     }
-    run() {
-        this.func();
+    run(...args) {
+        this.func(...args);
     }
 }
 
@@ -26,7 +28,7 @@ async function bulkActions() {
 }
 
 async function listClients() {
-    console.log('listClients');
+    await guiHandler();
 }
 
 async function toggleServer() {

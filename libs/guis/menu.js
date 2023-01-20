@@ -27,7 +27,8 @@ const gui = readline.createInterface({
 });
 
 module.exports = {
-    guiHandler
+    guiHandler,
+    pause
 }
 
 async function cls() {
@@ -90,10 +91,10 @@ async function render() {
     await logRender(height)
 }
 
-async function renderLoop() {
-    let width = 0;
+async function guiHandler() {
+    await hide(true);   let width = 0;
     let height = 0;
-    setInterval(async () => {
+    while (true) {
         //if the heigt is sm
         if (width !== process.stdout.columns || height !== process.stdout.rows) {
             //if the terminal width < 100 or the terminal height < 30 then resize them individually
@@ -101,12 +102,8 @@ async function renderLoop() {
             height = process.stdout.rows;
             cls()
         }
-    }, 0);
-}
-
-async function guiHandler() {
-    await hide(true);
-    renderLoop();
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
 }
 
 //custom stdin that only allows arrow keys
@@ -115,7 +112,7 @@ stdin.setRawMode(true);
 stdin.resume();
 stdin.setEncoding('utf8');
 
-stdin.on('data', (key) => {
+stdin.on('data', async (key) => {
     //use switch case to handle the key presses
     switch (key) {
         case '\u001B\u005B\u0041':
@@ -131,7 +128,7 @@ stdin.on('data', (key) => {
             selcolumn--;
             break;
         case '\u000D':
-            menu.get(selectedButton).run()
+            await menu.get(selectedButton).run()
             break;
     }
     cls();
@@ -196,4 +193,15 @@ async function renderButton(text, x, y, width, height, selected) {
     }
     process.stdout.cursorTo(textX, textY);
     process.stdout.write(text+ '\x1b[0m');
+}
+
+let paused
+async function pause() {
+    if (paused) {
+        paused = false
+    } else {
+        while (paused) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
 }
