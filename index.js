@@ -1,7 +1,7 @@
 const net = require('net');
 var config = require('./config.json');
 
-const Menu = require('./libs/guis/menu');
+const Menu = require('./libs/guis/Menu');
 
 const socketHandler = require('./libs/socketHandler.js');
 const { acceptConnection, socketList } = socketHandler;
