@@ -1,6 +1,7 @@
 const { logTypes } = require('./guiFuncs/log');
 const Gui = require('./classes/Gui');
 const Server = require('../server/Server');
+const ClientGui = require('./ClientGui');
 
 class ClientList extends Gui {
     clientLeng = 0;
@@ -19,14 +20,18 @@ class ClientList extends Gui {
                 this.cls()
                 this.hide(true);
                 process.stdout.cursorTo(0, 0);
-                process.stdout.write(`Client List - ${Server.instance.clients.length} Clients - Press ESC to Exit`);
+                let stdoutStr = '\x1b[4m' + `Client List - ${Server.instance.clients.length} Clients - Press Escape to Exit!`
+                stdoutStr += ' '.repeat(this.width - stdoutStr.length) + '\x1b[0m';
+                process.stdout.write(stdoutStr);
             }
             if (this.clientLeng !== Server.instance.clients.length) {
                 this.clientLeng = Server.instance.clients.length;
-                await this.cls();
+                this.cls();
                 this.hide(true);
                 process.stdout.cursorTo(0, 0);
-                process.stdout.write(`Client List - ${Server.instance.clients.length} Clients - Press Enter to Exit`);
+                let stdoutStr = '\x1b[4m' + `Client List - ${Server.instance.clients.length} Clients - Press Escape to Exit!`
+                stdoutStr += ' '.repeat(this.width - stdoutStr.length) + '\x1b[0m';
+                process.stdout.write(stdoutStr);
                 if (this.selRow > Server.instance.clients.length-1) {
                     this.selRow = 0;
                 }
@@ -49,7 +54,6 @@ class ClientList extends Gui {
     async setupStdin() {
         let buffer = [];
         process.stdin.setRawMode(true);
-        process.stdout.write("STDIN Setup");
         process.stdin.setEncoding('utf8');
         process.stdin.on('data', async (data) => {
             //up
@@ -67,6 +71,8 @@ class ClientList extends Gui {
             //enter
             if (data === '\r') {
                 //tbd - client menu
+                const client = Server.instance.clients[this.selRow];
+                const clientMenu = new ClientGui(parent, client);
             }
         });
     }

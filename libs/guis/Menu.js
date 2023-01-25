@@ -122,21 +122,13 @@ class Menu extends Gui {
         process.stdin.removeAllListeners('data');
         process.stdin.on('data', async (key) => {
             switch (key) {
-                //up
-                case '\u001B\u005B\u0041':
-                    this.selrow--;
-                    break;
-                //down
-                case '\u001B\u005B\u0042':
-                    this.selrow++;
+                //left
+                case '\u001B\u005B\u0044':
+                    this.selcolumn--;
                     break;
                 //right
                 case '\u001B\u005B\u0043':
                     this.selcolumn++;
-                    break;
-                //left
-                case '\u001B\u005B\u0044':
-                    this.selcolumn--;
                     break;
                 //enter
                 case '\u000D':
@@ -161,9 +153,11 @@ class Menu extends Gui {
         const buttonY = Math.floor(buttonHeight / 2) + height;
         const buttonSpacingX = Math.floor(width / columns);
 
+        this.selrow = Math.ceil(this.btnList.size / columns);
+
         this.selectedButton = this.selrow * columns + this.selcolumn;
         if (this.selectedButton > this.btnList.size - 1) {
-            selectedButton = 0;
+            this.selectedButton = 0;
             this.selrow = 0;
             this.selcolumn = 0;
         }
