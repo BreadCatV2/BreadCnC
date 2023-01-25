@@ -3,12 +3,14 @@ const process = require('process')
 const figlet = require('figlet')
 const gradient = require('gradient-string')
 
-const Gui = require('../classes/Gui')
-const { logRender } = require('./guiFuncs/log')
+const Gui = require('./classes/Gui')
+const Server = require('../server/Server')
+const { logRender, logTypes } = require('./guiFuncs/log')
 const { ClientList } = require('./ClientList')
-const { Button } = require('../classes/Button')
+const { Button } = require('./classes/Button')
 
 class Menu extends Gui {
+    server = Server.instance
     async settings(parent) {
         console.log('settings');
     }
@@ -22,7 +24,11 @@ class Menu extends Gui {
     }
     
     async toggleServer(parent) {
-        console.log('toggleServer');
+        parent.server.toggle();
+    }
+
+    async exitBtnFunc(parent) {
+        await parent.exit();
     }
 
     btnList = new Map([
@@ -30,11 +36,10 @@ class Menu extends Gui {
         [1, new Button('List Clients', this.listClients)],
         [2, new Button('Bulk Actions', this.bulkActions)],
         [3, new Button('Settings', this.settings)],
-        [4, new Button('Exit', this.exit)]
+        [4, new Button('Exit', this.exitBtnFunc)]
     ])
     handlerLoop = null
 
-    //this will be the gui of the server
     selrow = 0
     selcolumn = 0
     selectedButton = 0
@@ -71,6 +76,13 @@ class Menu extends Gui {
             process.stdout.cursorTo(titleX, titleY + i);
             process.stdout.write(titleLines[i]);
         }
+        
+        const statusString = `Server Status: ${this.server.online ? "Online":"Offline"}\n`;
+        const statusX = Math.floor(width / 2 - statusString.length / 2);
+        
+        process.stdout.cursorTo(statusX, titleY + titleLines.length);
+        process.stdout.write(statusString);
+        
         let titleHeight = titleY + titleLines.length;
         return titleY + titleHeight;
     }
@@ -88,15 +100,12 @@ class Menu extends Gui {
     }
 
     async guiHandler() {
+        console.log = logTypes.verbose;
         this.hide(true);   
         this.width = 0;
         this.height = 0;
         this.setHandlerLoop(async () => {
-            // if the terminal width < 100 or the terminal height < 30 then resize them individually
-            // if console is resized
-            // if the heigt is sm
             if (this.width !== process.stdout.columns || this.height !== process.stdout.rows) {
-                //if the terminal width < 100 or the terminal height < 30 then resize them individually
                 this.width = process.stdout.columns;
                 this.height = process.stdout.rows;
                 this.cls()
@@ -105,7 +114,6 @@ class Menu extends Gui {
     }
 
     async setupStdin() {
-        //custom stdin that only allows arrow keys
         if (process.stdin.isTTY) {
             process.stdin.setRawMode(true);
         }
@@ -113,20 +121,24 @@ class Menu extends Gui {
         process.stdin.setEncoding('utf8');
         process.stdin.removeAllListeners('data');
         process.stdin.on('data', async (key) => {
-            //use switch case to handle the key presses
             switch (key) {
+                //up
                 case '\u001B\u005B\u0041':
                     this.selrow--;
                     break;
+                //down
                 case '\u001B\u005B\u0042':
                     this.selrow++;
                     break;
+                //right
                 case '\u001B\u005B\u0043':
                     this.selcolumn++;
                     break;
+                //left
                 case '\u001B\u005B\u0044':
                     this.selcolumn--;
                     break;
+                //enter
                 case '\u000D':
                     this.btnList.get(this.selectedButton).run(this)
                     break;
@@ -150,20 +162,18 @@ class Menu extends Gui {
         const buttonSpacingX = Math.floor(width / columns);
 
         this.selectedButton = this.selrow * columns + this.selcolumn;
-        //if selected button is higher than the amount of buttons then set it to the first button
         if (this.selectedButton > this.btnList.size - 1) {
             selectedButton = 0;
             this.selrow = 0;
             this.selcolumn = 0;
         }
-        //if selected button is lower than 0 then set it to the last button
+        
         if (this.selectedButton < 0) {
             this.selectedButton = this.btnList.size - 1;
             this.selrow = Math.floor(this.btnList.size / columns);
             this.selcolumn = this.btnList.size % columns - 1;
         }
 
-        //loop through rows and columns and render the buttons
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < columns; j++) {
                 const button = this.btnList.get(i * columns + j)?.getName()
@@ -178,15 +188,12 @@ class Menu extends Gui {
     }
 
     async renderButton(text, x, y, width, height, selected) {
-        //color is reset code or orange
         const color = selected ? '\x1b[38;5;208m' : '\x1b[0m';
         const textX = Math.floor(x + width / 2 - text.length / 2);
         const textY = Math.floor(y + height / 2);
         for (let i = 0; i < height; i++) {
             for (let j = 0; j < width; j++) {
-                //only make the border of the button
                 if (i === 0 || i === height - 1 || j === 0 || j === width - 1) {
-                   //make the button borers lines ( ┌ └ ┐ ┘ │ ─)
                     process.stdout.cursorTo(x + j, y + i);
                     if (i === 0 && j === 0) {
                         process.stdout.write(color + '┌');

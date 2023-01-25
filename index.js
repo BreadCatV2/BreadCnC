@@ -1,20 +1,16 @@
-const net = require('net');
 var config = require('./config.json');
 
+const Server = require('./libs/server/Server');
 const Menu = require('./libs/guis/Menu');
 
-const socketHandler = require('./libs/socketHandler.js');
-const { acceptConnection, socketList } = socketHandler;
-//accept socket connections
-const server = net.createServer();
+const port = config.port;
 
-const mainMenu = new Menu();
+if (!port) {
+    console.log('Please specify a port in the config.json file');
+    process.exit(1);
+}
 
-//handle socket connections
-server.on('connection', (socket) => {
-    acceptConnection(socket);
-});
-
-server.listen(config.port, () => {
-    console.log('Server listening on port ' + config.port);
-});
+const server = new Server(port);
+if (!config.headless) {
+    const menu = new Menu();
+}

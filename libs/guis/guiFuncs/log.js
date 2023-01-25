@@ -9,7 +9,7 @@ const logFile = fs.createWriteStream('log.txt', { flags: 'a' });
 
 async function logRender(height) {
     if (console.log !== verboseLog) {
-        console.log = verboseLog;
+        return;
     }
     const logX = 0;
     const logY = height - logHeight;
@@ -41,12 +41,15 @@ const basicLog = function(...args) {
     logFile.write(text+'\r\n');
 }
 
+const silentLog = function() {}
+
 const classicLog = ogConsole;
 
 class logTypes {
     static verbose = verboseLog;
     static basic = basicLog;
     static classic = classicLog;
+    static silent = silentLog;
 }
 
 module.exports = {

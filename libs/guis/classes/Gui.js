@@ -32,7 +32,7 @@ class Gui {
         if (this.handlerLoop) {
             clearInterval(this.handlerLoop);
         }
-        //reset stdin
+        
         if (process.stdin.isTTY) {
             process.stdin.setRawMode(false);
         }
@@ -54,6 +54,7 @@ class Gui {
         if (this.parent) {
             await this.parent.start();
         } else {
+            process.stdout.write("\n");
             process.exit();
         }
     }
